@@ -365,7 +365,20 @@ class dobot_api_dashboard:
         print(string)
         self.socket_dashboard.send(str.encode(string,'utf-8'))
         self.WaitReply()
-    
+
+    def ModbusCreate(self, ip, port, slave_id, isRTU):
+        """
+        Create Modbus connection
+        ip       : slave ip address
+        port     : slave port
+        slave_id : slave's ID(greater than 0)
+        isRTU    : 0 or 1. 0 mean create modbusTCP, 1 mean create modbusRTU
+        """
+        string = "ModbusCreate({:s},{:d},{:d},{:d})".format(ip, port, slave_id, isRTU)
+        print(string)
+        self.socket_dashboard.send(str.encode(string,'utf-8'))
+        self.WaitReply()
+
     def Sync(self):
         """
         Synchronization instructions
