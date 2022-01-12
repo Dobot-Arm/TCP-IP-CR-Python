@@ -347,13 +347,14 @@ class dobot_api_dashboard:
         self.socket_dashboard.send(str.encode(string,'utf-8'))
         self.WaitReply()
 
-    def SetHoldRegs(self, id, addr, count, table, type):
+    def SetHoldRegs(self, id, addr, count, table, type="U16"):
         """
         Write hold register
         id :Secondary device NUMBER (A maximum of five devices can be supported. The value ranges from 0 to 4
             Set to 0 when accessing the internal slave of the controller)
         addr :Hold the starting address of the register (Value range:3095~4095)
         count :Writes the specified number of types of data (Value range:1~16)
+        table :String, enclosed in {...} representing a table holding int register values
         type :The data type
             If null, the 16-bit unsigned integer (2 bytes, occupying 1 register) is read by default
             "U16" : reads 16-bit unsigned integers (2 bytes, occupying 1 register)
@@ -361,7 +362,7 @@ class dobot_api_dashboard:
             "F32" : reads 32-bit single-precision floating-point number (4 bytes, occupying 2 registers)
             "F64" : reads 64-bit double precision floating point number (8 bytes, occupying 4 registers)
         """
-        string = "SetHoldRegs({:d},{:d},{:d},{:d},{:s})".format(id,addr,count,table,type)
+        string = "SetHoldRegs({:d},{:d},{:d},{:s},{:s})".format(id,addr,count,table,type)
         print(string)
         self.socket_dashboard.send(str.encode(string,'utf-8'))
         self.WaitReply()
