@@ -23,7 +23,7 @@ class RobotUI(object):
         # fixed window size
         self.root.geometry("850x850")
         # set window icon
-        self.root.iconbitmap("./images/frame_robot.ico")
+        self.root.iconbitmap("images/robot.ico")
 
         # global state dict
         self.global_state = {}
