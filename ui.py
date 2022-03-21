@@ -469,7 +469,7 @@ class RobotUI(object):
                 if a["robot_mode"] == 9:
                     self.display_error_info()
 
-            time.sleep(3)
+            time.sleep(0.005)
 
     def display_error_info(self):
         error_list = self.client_dash.GetErrorID().split("{")[1].split("}")[0]
