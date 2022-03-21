@@ -10,24 +10,24 @@ MyType = np.dtype([(
     np.int64,
 ), (
     'digital_input_bits',
-    np.int64,
+    np.uint64,
 ), (
-    'digital_outputs',
-    np.int64,
+    'digital_output_bits',
+    np.uint64,
 ), (
     'robot_mode',
-    np.int64,
+    np.uint64,
 ), (
-    'controller_timer',
-    np.int64,
+    'time_stamp',
+    np.uint64,
 ), (
-    'run_time',
-    np.int64,
+    'time_stamp_reserve_bit',
+    np.uint64,
 ), (
     'test_value',
-    np.int64,
+    np.uint64,
 ), (
-    'safety_mode',
+    'test_value_keep_bit',
     np.float64,
 ), (
     'speed_scaling',
@@ -45,10 +45,10 @@ MyType = np.dtype([(
     'i_robot',
     np.float64,
 ), (
-    'program_state',
+    'i_robot_keep_bit1',
     np.float64,
 ), (
-    'safety_status',
+    'i_robot_keep_bit2',
     np.float64,
 ), ('tool_accelerometer_values', np.float64, (3, )),
     ('elbow_position', np.float64, (3, )),
@@ -61,7 +61,7 @@ MyType = np.dtype([(
     ('q_actual', np.float64, (6, )),
     ('qd_actual', np.float64, (6, )),
     ('i_actual', np.float64, (6, )),
-    ('i_control', np.float64, (6, )),
+    ('actual_TCP_force', np.float64, (6, )),
     ('tool_vector_actual', np.float64, (6, )),
     ('TCP_speed_actual', np.float64, (6, )),
     ('TCP_force', np.float64, (6, )),
@@ -71,6 +71,46 @@ MyType = np.dtype([(
     ('joint_modes', np.float64, (6, )),
     ('v_actual', np.float64, (6, )),
     ('dummy', np.float64, (9, 6))])
+    # ('hand_type', np.char, (4, )),
+    # ('user', np.char,),
+    # ('tool', np.char,),
+    # ('run_queued_cmd', np.char,),
+    # ('pause_cmd_flag', np.char,),
+    # ('velocity_ratio', np.char,),
+    # ('acceleration_ratio', np.char,),
+    # ('jerk_ratio', np.char,),
+    # ('xyz_velocity_ratio', np.char,),
+    # ('r_velocity_ratio', np.char,),
+    # ('xyz_acceleration_ratio', np.char,),
+    # ('r_acceleration_ratio', np.char,),
+    # ('xyz_jerk_ratio', np.char,),
+    # ('r_jerk_ratio', np.char,),
+    # ('brake_status', np.char,),
+    # ('enable_status', np.char,),
+    # ('drag_status', np.char,),
+    # ('running_status', np.char,),
+    # ('error_status', np.char,),
+    # ('jog_status', np.char,),
+    # ('robot_type', np.char,),
+    # ('drag_button_signal', np.char,),
+    # ('enable_button_signal', np.char,),
+    # ('record_button_signal', np.char,),
+    # ('reappear_button_signal', np.char,),
+    # ('jaw_button_signal', np.char,),
+    # ('six_force_online', np.char,),
+    # ('reserve2', np.char, (82, )),
+    # ('m_actual', np.float64, (6, )),
+    # ('load', np.float64,),
+    # ('center_x', np.float64,),
+    # ('center_y', np.float64,),
+    # ('center_z', np.float64,),
+    # ('user[6]', np.float64, (6, )),
+    # ('tool[6]', np.float64, (6, )),
+    # ('trace_index', np.float64,),
+    # ('six_force_value', np.float64, (6, )),
+    # ('target_quaternion', np.float64, (4, )),
+    # ('actual_quaternion', np.float64, (4, )),
+    # ('reserve3', np.char, (24, ))])
 
 
 class DobotApiDashboard:
@@ -86,16 +126,16 @@ class DobotApiDashboard:
         if args:
             self.text_log = args[0]
 
-        # if self.port == 29999:
-        #     try:
-        #         self.socket_dashboard = socket.socket()
-        #         self.socket_dashboard.connect((self.ip, self.port))
-        #     except socket.error:
-        #         raise Exception(
-        #             "Unable to set socket connection use port 29999 !", socket.error)
-        # else:
-        #     raise Exception(
-        #         "Connect to dashboard server need use port 29999 !")
+        if self.port == 29999:
+            try:
+                self.socket_dashboard = socket.socket()
+                self.socket_dashboard.connect((self.ip, self.port))
+            except socket.error:
+                raise Exception(
+                    "Unable to set socket connection use port 29999 !", socket.error)
+        else:
+            raise Exception(
+                "Connect to dashboard server need use port 29999 !")
 
     def log(self, text):
         if self.text_log:
@@ -418,9 +458,9 @@ class DobotApiDashboard:
         Read the return value
         """
         data = self.socket_dashboard.recv(1024)
-        self.log('Receive from 192.168.5.1:29999:',
-                 bytes.decode(data, 'utf-8'))
-        return data
+        data_str = str(data, encoding = "utf-8")
+        self.log('Receive from 192.168.5.1:29999:' + data_str)
+        return data_str
 
     def close(self):
         """
@@ -443,15 +483,15 @@ class DobotApiMove:
         if args:
             self.text_log = args[0]
 
-        # if self.port == 30003:
-        #     try:
-        #         self.socket_move = socket.socket()
-        #         self.socket_move.connect((self.ip, self.port))
-        #     except socket.error:
-        #         raise Exception(
-        #             "Unable to set socket connection use port 30003 !", socket.error)
-        # else:
-        #     raise Exception("Connect to feedback server need use port 30003 !")
+        if self.port == 30003:
+            try:
+                self.socket_move = socket.socket()
+                self.socket_move.connect((self.ip, self.port))
+            except socket.error:
+                raise Exception(
+                    "Unable to set socket connection use port 30003 !", socket.error)
+        else:
+            raise Exception("Connect to feedback server need use port 30003 !")
 
     def log(self, text):
         if self.text_log:
@@ -642,7 +682,7 @@ class DobotApiMove:
                     user_index: user index is 0 ~ 9 (default value is 0)
                     tool_index: tool index is 0 ~ 9 (default value is 0)
         """
-        string = f"MoveJog({axis_id})"
+        string = f"MoveJog({axis_id}"
         for params in dynParams:
             print(type(params), params)
             string = string + ", CoordType={:d}, User={:d}, Tool={:d}".format(
@@ -714,7 +754,7 @@ class DobotApiMove:
                     acc_j: Set acceleration scale value, value range: 1 ~ 100
                     user: Set user coordinate system index
         """
-        string = "RelMovJTool({:f},{:f},{:f},{:f},{:f},{:f}, {:d})".format(
+        string = "RelMovJTool({:f},{:f},{:f},{:f},{:f},{:f}, {:d}".format(
             offset_x, offset_y, offset_z, offset_rx, offset_ry, offset_rz, tool)
         for params in dynParams:
             print(type(params), params)
@@ -739,7 +779,7 @@ class DobotApiMove:
                     acc_l: Set acceleration scale value, value range: 1 ~ 100
                     user: Set user coordinate system index
         """
-        string = "RelMovLTool({:f},{:f},{:f},{:f},{:f},{:f}, {:d})".format(
+        string = "RelMovLTool({:f},{:f},{:f},{:f},{:f},{:f}, {:d}".format(
             offset_x, offset_y, offset_z, offset_rx, offset_ry, offset_rz, tool)
         for params in dynParams:
             print(type(params), params)
@@ -764,7 +804,7 @@ class DobotApiMove:
                     acc_j: Set acceleration scale value, value range: 1 ~ 100
                     tool: Set tool coordinate system index
         """
-        string = "RelMovJUser({:f},{:f},{:f},{:f},{:f},{:f}, {:d})".format(
+        string = "RelMovJUser({:f},{:f},{:f},{:f},{:f},{:f}, {:d}".format(
             offset_x, offset_y, offset_z, offset_rx, offset_ry, offset_rz, user)
         for params in dynParams:
             print(type(params), params)
@@ -789,7 +829,7 @@ class DobotApiMove:
                     acc_l: Set acceleration scale value, value range: 1 ~ 100
                     tool: Set tool coordinate system index
         """
-        string = "RelMovLUser({:f},{:f},{:f},{:f},{:f},{:f}, {:d})".format(
+        string = "RelMovLUser({:f},{:f},{:f},{:f},{:f},{:f}, {:d}".format(
             offset_x, offset_y, offset_z, offset_rx, offset_ry, offset_rz, user)
         for params in dynParams:
             print(type(params), params)
@@ -808,7 +848,7 @@ class DobotApiMove:
                     speed_j: Set Cartesian speed scale, value range: 1 ~ 100
                     acc_j: Set acceleration scale value, value range: 1 ~ 100
         """
-        string = "RelJointMovJ({:f},{:f},{:f},{:f},{:f},{:f})".format(
+        string = "RelJointMovJ({:f},{:f},{:f},{:f},{:f},{:f}".format(
             offset1, offset2, offset3, offset4, offset5, offset6)
         for params in dynParams:
             print(type(params), params)
@@ -833,9 +873,8 @@ class DobotApiMove:
         """
         Read the return value
         """
-        data = self.socket_move.recv(1024)
-        self.log('Receive from 192.168.5.1:30003:',
-                 bytes.decode(data, 'utf-8'))
+        data = str(self.socket_move.recv(1024), encoding="utf-8")
+        self.log('Receive from 192.168.5.1:30003:' + data)
 
 
 class DobotApiFeedback:
@@ -851,15 +890,16 @@ class DobotApiFeedback:
         if args:
             self.text_log = args[0]
 
-        # if self.port == 30004:
-        #     try:
-        #         self.socket_feedback = socket.socket()
-        #         self.socket_feedback.connect((self.ip, self.port))
-        #     except socket.error:
-        #         raise Exception(
-        #             "Unable to set socket connection use port 30004 !", socket.error)
-        # else:
-        #     raise Exception("Connect to feedback server need use port 30004 !")
+        if self.port == 30004:
+            try:
+                self.socket_feedback = socket.socket()
+                self.socket_feedback.connect((self.ip, self.port))
+            except socket.error:
+                raise Exception(
+                    "Unable to set socket connection use port 30004 !", socket.error)
+        else:
+            raise Exception("Connect to feedback server need use port 30004 !")
+
     def log(self, text):
         if self.text_log:
             date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S ")

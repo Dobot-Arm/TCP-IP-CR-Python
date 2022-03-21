@@ -191,7 +191,7 @@ class RobotUI(object):
                        text="Current Speed Ratio:", rely=0.05, x=10)
         self.label_feed_speed = self.set_label(
             self.frame_feed, "", rely=0.05, x=145)
-        self.set_label(self.frame_feed, text="%", rely=0.05, x=165)
+        self.set_label(self.frame_feed, text="%", rely=0.05, x=175)
 
         # Robot Mode
         self.set_label(self.frame_feed, text="Robot Mode:", rely=0.1, x=10)
@@ -206,10 +206,10 @@ class RobotUI(object):
         # Digitial I/O
         self.set_label(self.frame_feed, "Digital Inputs:", rely=0.8, x=11)
         self.label_di_input = self.set_label(
-            self.frame_feed, "111", rely=0.8, x=100)
+            self.frame_feed, "", rely=0.8, x=100)
         self.set_label(self.frame_feed, "Digital Outputs:", rely=0.85, x=10)
         self.label_di_output = self.set_label(
-            self.frame_feed, "111", rely=0.85, x=100)
+            self.frame_feed, "", rely=0.85, x=100)
 
         # Error Info
         self.frame_err = LabelFrame(self.frame_feed, text="Error Info", labelanchor="nw",
@@ -407,7 +407,7 @@ class RobotUI(object):
         self.set_label(self.frame_feed, text_list[1][5], rely=0.71, x=x2)
 
         self.label_feed_dict[text_list[1][0]] = self.set_label(
-            self.frame_feed, "123", rely=0.21, x=x3)
+            self.frame_feed, " ", rely=0.21, x=x3)
         self.label_feed_dict[text_list[1][1]] = self.set_label(
             self.frame_feed, " ", rely=0.31, x=x3)
         self.label_feed_dict[text_list[1][2]] = self.set_label(
@@ -417,7 +417,7 @@ class RobotUI(object):
         self.label_feed_dict[text_list[1][4]] = self.set_label(
             self.frame_feed, " ", rely=0.61, x=x3)
         self.label_feed_dict[text_list[1][5]] = self.set_label(
-            self.frame_feed, "233", rely=0.71, x=x3)
+            self.frame_feed, " ", rely=0.71, x=x3)
 
         self.set_button_bind(
             self.frame_feed, text_list[2][0], rely=0.2, x=x4, command=lambda: self.move_jog(text_list[2][0]))
@@ -435,6 +435,7 @@ class RobotUI(object):
     def feed_back(self):
         hasRead = 0
         while True:
+            print("self.global_state(connect)", self.global_state["connect"])
             if not self.global_state["connect"]:
                 break
             data = bytes()
@@ -446,16 +447,18 @@ class RobotUI(object):
             hasRead = 0
 
             a = np.frombuffer(data, dtype=MyType)
+            print("robot_mode:", a["robot_mode"][0])
+            print("test_value:", hex((a['test_value'][0])))
             if hex((a['test_value'][0])) == '0x123456789abcdef':
-                print('tool_vector_actual',
-                      np.around(a['tool_vector_actual'], decimals=4))
-                print('q_actual', np.around(a['q_actual'], decimals=4))
+                # print('tool_vector_actual',
+                #       np.around(a['tool_vector_actual'], decimals=4))
+                # print('q_actual', np.around(a['q_actual'], decimals=4))
 
                 # Refresh Properties
-                self.label_feed_speed["text"] = a["speed_scaling"]
-                self.label_robot_mode["text"] = LABEL_ROBOT_MODE[a["robot_mode"]]
-                self.label_di_input["text"] = a["digital_input_bits"]
-                self.label_di_output["text"] = a["digital_outputs"]
+                self.label_feed_speed["text"] = a["speed_scaling"][0]
+                self.label_robot_mode["text"] = LABEL_ROBOT_MODE[a["robot_mode"][0]]
+                self.label_di_input["text"] = bin(a["digital_input_bits"][0])[2:].rjust(64, '0')
+                self.label_di_output["text"] = bin(a["digital_output_bits"][0])[2:].rjust(64, '0')
 
                 # Refresh coordinate points
                 self.set_feed_joint(LABEL_JOINT, a["q_actual"])
@@ -465,19 +468,22 @@ class RobotUI(object):
                 if a["robot_mode"] == 9:
                     self.display_error_info()
 
-            time.sleep(0.005)
+            time.sleep(3)
 
     def display_error_info(self):
-        error_str = self.client_dash.GetErrorID()
-        # 实际调试的时候再处理
-        error_list = list(error_str)
-        for i in error_list[0]:
-            self.form_error(i, self.alarm_controller_dict, "Controller Error")
+        error_list = self.client_dash.GetErrorID().split("{")[1].split("}")[0]
+
+        error_list = json.loads(error_list)
+        print("error_list:", error_list)
+        if error_list[0]:
+            for i in error_list[0]:
+                self.form_error(i, self.alarm_controller_dict, "Controller Error")
 
 
         for m in range(1, len(error_list)):
-            for n in range(len(m)):
-                self.form_error(n, self.alarm_servo_dict, "Servo Error")
+            if error_list[m]:
+                for n in range(len(error_list[m])):
+                    self.form_error(n, self.alarm_servo_dict, "Servo Error")
 
     def form_error(self, index, alarm_dict: dict, type_text):
         if index in alarm_dict.keys():
@@ -496,9 +502,9 @@ class RobotUI(object):
 
     def set_feed_joint(self, label, value):
         array_value = np.around(value, decimals=4)
-        self.label_feed_dict[label[1][0]] = array_value[0]
-        self.label_feed_dict[label[1][1]] = array_value[1]
-        self.label_feed_dict[label[1][2]] = array_value[2]
-        self.label_feed_dict[label[1][3]] = array_value[3]
-        self.label_feed_dict[label[1][4]] = array_value[4]
-        self.label_feed_dict[label[1][5]] = array_value[5]
+        self.label_feed_dict[label[1][0]]["text"] = array_value[0][0]
+        self.label_feed_dict[label[1][1]]["text"] = array_value[0][1]
+        self.label_feed_dict[label[1][2]]["text"] = array_value[0][2]
+        self.label_feed_dict[label[1][3]]["text"] = array_value[0][3]
+        self.label_feed_dict[label[1][4]]["text"] = array_value[0][4]
+        self.label_feed_dict[label[1][5]]["text"] = array_value[0][5]
