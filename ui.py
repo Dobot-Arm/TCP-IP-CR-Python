@@ -38,7 +38,7 @@ class RobotUI(object):
         self.root = Tk()
         self.root.title("CR Python demo")
         # fixed window size
-        self.root.geometry("850x850")
+        self.root.geometry("900x850")
         # set window icon
         self.root.iconbitmap("images/robot.ico")
 
@@ -53,7 +53,7 @@ class RobotUI(object):
 
         # Robot Connect
         self.frame_robot = LabelFrame(self.root, text="Robot Connect",
-                                      labelanchor="nw", bg="#FFFFFF", width=800, height=120, border=2)
+                                      labelanchor="nw", bg="#FFFFFF", width=870, height=120, border=2)
 
         self.label_ip = Label(self.frame_robot, text="IP Address:")
         self.label_ip.place(rely=0.2, x=10)
@@ -90,7 +90,7 @@ class RobotUI(object):
 
         # Dashboard Function
         self.frame_dashboard = LabelFrame(self.root, text="Dashboard Function",
-                                          labelanchor="nw", bg="#FFFFFF", pady=10, width=800, height=120, border=2)
+                                          labelanchor="nw", bg="#FFFFFF", pady=10, width=870, height=120, border=2)
 
         # Enable/Disable
         self.button_enable = self.set_button(master=self.frame_dashboard,
@@ -142,7 +142,7 @@ class RobotUI(object):
 
         # Move Function
         self.frame_move = LabelFrame(self.root, text="Move Function", labelanchor="nw",
-                                     bg="#FFFFFF", width=800, pady=10, height=130, border=2)
+                                     bg="#FFFFFF", width=870, pady=10, height=130, border=2)
 
         self.set_move(text="X:", label_value=10,
                       default_value="600", entry_value=40, rely=0.1, master=self.frame_move)
@@ -179,10 +179,10 @@ class RobotUI(object):
                         text="JointMovJ", rely=0.45, x=610, command=self.joint_movj)
 
         self.frame_feed_log = Frame(
-            self.root, bg="#FFFFFF", width=800, pady=10, height=400, border=2)
+            self.root, bg="#FFFFFF", width=870, pady=10, height=400, border=2)
         # Feedback
         self.frame_feed = LabelFrame(self.frame_feed_log, text="Feedback", labelanchor="nw",
-                                     bg="#FFFFFF", width=480, height=150)
+                                     bg="#FFFFFF", width=550, height=150)
 
         self.frame_feed.place(relx=0, rely=0, relheight=1)
 
@@ -200,8 +200,8 @@ class RobotUI(object):
 
         # 点动及获取坐标
         self.label_feed_dict = {}
-        self.set_feed(LABEL_JOINT, 9, 52, 73, 102)
-        self.set_feed(LABEL_COORD, 150, 194, 215, 242)
+        self.set_feed(LABEL_JOINT, 9, 52, 74, 117)
+        self.set_feed(LABEL_COORD, 165, 209, 231, 272)
 
         # Digitial I/O
         self.set_label(self.frame_feed, "Digital Inputs:", rely=0.8, x=11)
@@ -213,21 +213,23 @@ class RobotUI(object):
 
         # Error Info
         self.frame_err = LabelFrame(self.frame_feed, text="Error Info", labelanchor="nw",
-                                    bg="#FFFFFF", width=180, height=78)
-        self.frame_err.place(relx=0.6, rely=0.05, relheight=0.9)
+                                    bg="#FFFFFF", width=180, height=50)
+        self.frame_err.place(relx=0.65, rely=0, relheight=0.7)
 
-        self.text_err = ScrolledText(self.frame_err, width=170, height=70)
-        self.text_err.place(rely=0, relx=0, relheight=0.9, relwidth=1)
+        self.text_err = ScrolledText(
+            self.frame_err, width=170, height=50, relief="flat")
+        self.text_err.place(rely=0, relx=0, relheight=0.7, relwidth=1)
 
-        self.set_button(self.frame_feed, "Clear", rely=0.86,
-                        x=400, command=self.clear_error_info)
+        self.set_button(self.frame_feed, "Clear", rely=0.71,
+                        x=487, command=self.clear_error_info)
 
         # Log
         self.frame_log = LabelFrame(self.frame_feed_log, text="Log", labelanchor="nw",
-                                    bg="#FFFFFF", width=280, height=150)
-        self.frame_log.place(relx=0.63, rely=0, relheight=1)
+                                    bg="#FFFFFF", width=300, height=150)
+        self.frame_log.place(relx=0.65, rely=0, relheight=1)
 
-        self.text_log = ScrolledText(self.frame_log, width=270, height=140)
+        self.text_log = ScrolledText(
+            self.frame_log, width=270, height=140, relief="flat")
         self.text_log.place(rely=0, relx=0, relheight=1, relwidth=1)
 
         # initial client
@@ -277,11 +279,8 @@ class RobotUI(object):
             self.client_move.MoveJog("")
 
     def set_button(self, master, text, rely, x, **kargs):
-        if kargs:
-            self.button = Button(master, text=text, padx=5,
-                                 command=kargs["command"])
-        else:
-            self.button = Button(master, text=text, padx=5)
+        self.button = Button(master, text=text, padx=5,
+                             command=kargs["command"])
         self.button.place(rely=rely, x=x)
 
         if text != "Connect":
@@ -457,8 +456,10 @@ class RobotUI(object):
                 # Refresh Properties
                 self.label_feed_speed["text"] = a["speed_scaling"][0]
                 self.label_robot_mode["text"] = LABEL_ROBOT_MODE[a["robot_mode"][0]]
-                self.label_di_input["text"] = bin(a["digital_input_bits"][0])[2:].rjust(64, '0')
-                self.label_di_output["text"] = bin(a["digital_output_bits"][0])[2:].rjust(64, '0')
+                self.label_di_input["text"] = bin(a["digital_input_bits"][0])[
+                    2:].rjust(64, '0')
+                self.label_di_output["text"] = bin(a["digital_output_bits"][0])[
+                    2:].rjust(64, '0')
 
                 # Refresh coordinate points
                 self.set_feed_joint(LABEL_JOINT, a["q_actual"])
@@ -477,8 +478,8 @@ class RobotUI(object):
         print("error_list:", error_list)
         if error_list[0]:
             for i in error_list[0]:
-                self.form_error(i, self.alarm_controller_dict, "Controller Error")
-
+                self.form_error(i, self.alarm_controller_dict,
+                                "Controller Error")
 
         for m in range(1, len(error_list)):
             if error_list[m]:
@@ -495,7 +496,6 @@ class RobotUI(object):
                 f"Solution:{alarm_dict[index]['en']['solution']}\n"
 
             self.text_err.insert(END, error_info)
-
 
     def clear_error_info(self):
         self.text_err.delete("1.0", "end")
