@@ -1,96 +1,108 @@
 import socket
 from threading import Timer
-# import numpy as np
+from tkinter import Text, END
+import datetime
+import numpy as np
 
 # Port Feedback
-# MyType = np.dtype([(
-#     'len',
-#     np.int64,
-# ), (
-#     'digital_input_bits',
-#     np.int64,
-# ), (
-#     'digital_outputs',
-#     np.int64,
-# ), (
-#     'robot_mode',
-#     np.int64,
-# ), (
-#     'controller_timer',
-#     np.int64,
-# ), (
-#     'run_time',
-#     np.int64,
-# ), (
-#     'test_value',
-#     np.int64,
-# ), (
-#     'safety_mode',
-#     np.float64,
-# ), (
-#     'speed_scaling',
-#     np.float64,
-# ), (
-#     'linear_momentum_norm',
-#     np.float64,
-# ), (
-#     'v_main',
-#     np.float64,
-# ), (
-#     'v_robot',
-#     np.float64,
-# ), (
-#     'i_robot',
-#     np.float64,
-# ), (
-#     'program_state',
-#     np.float64,
-# ), (
-#     'safety_status',
-#     np.float64,
-# ), ('tool_accelerometer_values', np.float64, (3, )),
-#                    ('elbow_position', np.float64, (3, )),
-#                    ('elbow_velocity', np.float64, (3, )),
-#                    ('q_target', np.float64, (6, )),
-#                    ('qd_target', np.float64, (6, )),
-#                    ('qdd_target', np.float64, (6, )),
-#                    ('i_target', np.float64, (6, )),
-#                    ('m_target', np.float64, (6, )),
-#                    ('q_actual', np.float64, (6, )),
-#                    ('qd_actual', np.float64, (6, )),
-#                    ('i_actual', np.float64, (6, )),
-#                    ('i_control', np.float64, (6, )),
-#                    ('tool_vector_actual', np.float64, (6, )),
-#                    ('TCP_speed_actual', np.float64, (6, )),
-#                    ('TCP_force', np.float64, (6, )),
-#                    ('Tool_vector_target', np.float64, (6, )),
-#                    ('TCP_speed_target', np.float64, (6, )),
-#                    ('motor_temperatures', np.float64, (6, )),
-#                    ('joint_modes', np.float64, (6, )),
-#                    ('v_actual', np.float64, (6, )),
-#                    ('dummy', np.float64, (9, 6))])
+MyType = np.dtype([(
+    'len',
+    np.int64,
+), (
+    'digital_input_bits',
+    np.int64,
+), (
+    'digital_outputs',
+    np.int64,
+), (
+    'robot_mode',
+    np.int64,
+), (
+    'controller_timer',
+    np.int64,
+), (
+    'run_time',
+    np.int64,
+), (
+    'test_value',
+    np.int64,
+), (
+    'safety_mode',
+    np.float64,
+), (
+    'speed_scaling',
+    np.float64,
+), (
+    'linear_momentum_norm',
+    np.float64,
+), (
+    'v_main',
+    np.float64,
+), (
+    'v_robot',
+    np.float64,
+), (
+    'i_robot',
+    np.float64,
+), (
+    'program_state',
+    np.float64,
+), (
+    'safety_status',
+    np.float64,
+), ('tool_accelerometer_values', np.float64, (3, )),
+    ('elbow_position', np.float64, (3, )),
+    ('elbow_velocity', np.float64, (3, )),
+    ('q_target', np.float64, (6, )),
+    ('qd_target', np.float64, (6, )),
+    ('qdd_target', np.float64, (6, )),
+    ('i_target', np.float64, (6, )),
+    ('m_target', np.float64, (6, )),
+    ('q_actual', np.float64, (6, )),
+    ('qd_actual', np.float64, (6, )),
+    ('i_actual', np.float64, (6, )),
+    ('i_control', np.float64, (6, )),
+    ('tool_vector_actual', np.float64, (6, )),
+    ('TCP_speed_actual', np.float64, (6, )),
+    ('TCP_force', np.float64, (6, )),
+    ('Tool_vector_target', np.float64, (6, )),
+    ('TCP_speed_target', np.float64, (6, )),
+    ('motor_temperatures', np.float64, (6, )),
+    ('joint_modes', np.float64, (6, )),
+    ('v_actual', np.float64, (6, )),
+    ('dummy', np.float64, (9, 6))])
 
 
-class dobot_api_dashboard:
+class DobotApiDashboard:
     """
     Define class dobot_api_dashboard to establish a connection to Dobot
     """
 
-    def __init__(self, ip, port):
+    def __init__(self, ip, port, *args):
         self.ip = ip
         self.port = port
         self.socket_dashboard = 0
+        self.text_log: Text = None
+        if args:
+            self.text_log = args[0]
 
-        if self.port == 29999:
-            try:
-                self.socket_dashboard = socket.socket()
-                self.socket_dashboard.connect((self.ip, self.port))
-            except socket.error:
-                raise Exception(
-                    "Unable to set socket connection use port 29999 !", socket.error)
+        # if self.port == 29999:
+        #     try:
+        #         self.socket_dashboard = socket.socket()
+        #         self.socket_dashboard.connect((self.ip, self.port))
+        #     except socket.error:
+        #         raise Exception(
+        #             "Unable to set socket connection use port 29999 !", socket.error)
+        # else:
+        #     raise Exception(
+        #         "Connect to dashboard server need use port 29999 !")
+
+    def log(self, text):
+        if self.text_log:
+            date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S ")
+            self.text_log.insert(END, date+text+"\n")
         else:
-            raise Exception(
-                "Connect to dashboard server need use port 29999 !")
+            print(text)
 
     def __delete__(self):
         self.close()
@@ -100,36 +112,32 @@ class dobot_api_dashboard:
         Enable the robot
         """
         string = "EnableRobot()"
-        print(string)
-        self.socket_dashboard.send(str.encode(string, 'utf-8'))
-        self.WaitReply()
+        self.send_data(string)
+        return self.wait_reply()
 
     def DisableRobot(self):
         """
         Disabled the robot
         """
         string = "DisableRobot()"
-        print(string)
-        self.socket_dashboard.send(str.encode(string, 'utf-8'))
-        self.WaitReply()
+        self.send_data(string)
+        return self.wait_reply()
 
     def ClearError(self):
         """
         Clear controller alarm information
         """
         string = "ClearError()"
-        print(string)
-        self.socket_dashboard.send(str.encode(string, 'utf-8'))
-        self.WaitReply()
+        self.send_data(string)
+        return self.wait_reply()
 
     def ResetRobot(self):
         """
         Robot stop
         """
         string = "ResetRobot()"
-        print(string)
-        self.socket_dashboard.send(str.encode(string, 'utf-8'))
-        self.WaitReply()
+        self.send_data(string)
+        return self.wait_reply()
 
     def SpeedFactor(self, speed):
         """
@@ -137,9 +145,8 @@ class dobot_api_dashboard:
         speed:Rate value(Value range:1~100)
         """
         string = "SpeedFactor({:d})".format(speed)
-        print(string)
-        self.socket_dashboard.send(str.encode(string, 'utf-8'))
-        self.WaitReply()
+        self.send_data(string)
+        return self.wait_reply()
 
     def User(self, index):
         """
@@ -147,9 +154,8 @@ class dobot_api_dashboard:
         index : Calibrated index of user coordinates
         """
         string = "User({:d})".format(index)
-        print(string)
-        self.socket_dashboard.send(str.encode(string, 'utf-8'))
-        self.WaitReply()
+        self.send_data(string)
+        return self.wait_reply()
 
     def Tool(self, index):
         """
@@ -157,18 +163,16 @@ class dobot_api_dashboard:
         index : Calibrated index of tool coordinates
         """
         string = "Tool({:d})".format(index)
-        print(string)
-        self.socket_dashboard.send(str.encode(string, 'utf-8'))
-        self.WaitReply()
+        self.send_data(string)
+        return self.wait_reply()
 
     def RobotMode(self):
         """
         View the robot status
         """
         string = "RobotMode()"
-        print(string)
-        self.socket_dashboard.send(str.encode(string, 'utf-8'))
-        self.WaitReply()
+        self.send_data(string)
+        return self.wait_reply()
 
     def PayLoad(self, weight, inertia):
         """
@@ -177,9 +181,8 @@ class dobot_api_dashboard:
         inertia: The load moment of inertia
         """
         string = "PayLoad({:f},{:f})".format(weight, inertia)
-        print(string)
-        self.socket_dashboard.send(str.encode(string, 'utf-8'))
-        self.WaitReply()
+        self.send_data(string)
+        return self.wait_reply()
 
     def DO(self, index, status):
         """
@@ -188,9 +191,8 @@ class dobot_api_dashboard:
         status : Status of digital signal output port(0:Low level，1:High level
         """
         string = "DO({:d},{:d})".format(index, status)
-        print(string)
-        self.socket_dashboard.send(str.encode(string, 'utf-8'))
-        self.WaitReply()
+        self.send_data(string)
+        return self.wait_reply()
 
     def DOExecute(self, index, status):
         """
@@ -199,9 +201,8 @@ class dobot_api_dashboard:
         status : Status of digital signal output port(0:Low level，1:High level)
         """
         string = "DOExecute({:d},{:d})".format(index, status)
-        print(string)
-        self.socket_dashboard.send(str.encode(string, 'utf-8'))
-        self.WaitReply()
+        self.send_data(string)
+        return self.wait_reply()
 
     def ToolDO(self, index, status):
         """
@@ -210,9 +211,8 @@ class dobot_api_dashboard:
         status : Status of digital signal output port(0:Low level，1:High level)
         """
         string = "ToolDO({:d},{:d})".format(index, status)
-        print(string)
-        self.socket_dashboard.send(str.encode(string, 'utf-8'))
-        self.WaitReply()
+        self.send_data(string)
+        return self.wait_reply()
 
     def ToolDOExecute(self, index, status):
         """
@@ -221,9 +221,8 @@ class dobot_api_dashboard:
         status : Status of digital signal output port(0:Low level，1:High level)
         """
         string = "ToolDOExecute({:d},{:d})".format(index, status)
-        print(string)
-        self.socket_dashboard.send(str.encode(string, 'utf-8'))
-        self.WaitReply()
+        self.send_data(string)
+        return self.wait_reply()
 
     def AO(self, index, val):
         """
@@ -232,9 +231,8 @@ class dobot_api_dashboard:
         val : Voltage value (0~10)
         """
         string = "AO({:d},{:f})".format(index, val)
-        print(string)
-        self.socket_dashboard.send(str.encode(string, 'utf-8'))
-        self.WaitReply()
+        self.send_data(string)
+        return self.wait_reply()
 
     def AOExecute(self, index, val):
         """
@@ -243,9 +241,8 @@ class dobot_api_dashboard:
         val : Voltage value (0~10)
         """
         string = "AOExecute({:d},{:f})".format(index, val)
-        print(string)
-        self.socket_dashboard.send(str.encode(string, 'utf-8'))
-        self.WaitReply()
+        self.send_data(string)
+        return self.wait_reply()
 
     def AccJ(self, speed):
         """
@@ -253,9 +250,8 @@ class dobot_api_dashboard:
         speed : Joint acceleration ratio (Value range:1~100)
         """
         string = "AccJ({:d})".format(speed)
-        print(string)
-        self.socket_dashboard.send(str.encode(string, 'utf-8'))
-        self.WaitReply()
+        self.send_data(string)
+        return self.wait_reply()
 
     def AccL(self, speed):
         """
@@ -263,9 +259,8 @@ class dobot_api_dashboard:
         speed : Cartesian acceleration ratio (Value range:1~100)
         """
         string = "AccL({:d})".format(speed)
-        print(string)
-        self.socket_dashboard.send(str.encode(string, 'utf-8'))
-        self.WaitReply()
+        self.send_data(string)
+        return self.wait_reply()
 
     def SpeedJ(self, speed):
         """
@@ -273,9 +268,8 @@ class dobot_api_dashboard:
         speed : Joint velocity ratio (Value range:1~100)
         """
         string = "SpeedJ({:d})".format(speed)
-        print(string)
-        self.socket_dashboard.send(str.encode(string, 'utf-8'))
-        self.WaitReply()
+        self.send_data(string)
+        return self.wait_reply()
 
     def SpeedL(self, speed):
         """
@@ -283,9 +277,8 @@ class dobot_api_dashboard:
         speed : Cartesian acceleration ratio (Value range:1~100)
         """
         string = "SpeedL({:d})".format(speed)
-        print(string)
-        self.socket_dashboard.send(str.encode(string, 'utf-8'))
-        self.WaitReply()
+        self.send_data(string)
+        return self.wait_reply()
 
     def Arch(self, index):
         """
@@ -293,9 +286,8 @@ class dobot_api_dashboard:
         index : Parameter index (Value range:0~9)
         """
         string = "Arch({:d})".format(index)
-        print(string)
-        self.socket_dashboard.send(str.encode(string, 'utf-8'))
-        self.WaitReply()
+        self.send_data(string)
+        return self.wait_reply()
 
     def CP(self, ratio):
         """
@@ -303,9 +295,8 @@ class dobot_api_dashboard:
         ratio : Smooth transition ratio (Value range:1~100)
         """
         string = "CP({:d})".format(ratio)
-        print(string)
-        self.socket_dashboard.send(str.encode(string, 'utf-8'))
-        self.WaitReply()
+        self.send_data(string)
+        return self.wait_reply()
 
     def LimZ(self, value):
         """
@@ -313,9 +304,8 @@ class dobot_api_dashboard:
         value : Maximum lifting height (Highly restricted:Do not exceed the limit position of the z-axis of the manipulator)
         """
         string = "LimZ({:d})".format(value)
-        print(string)
-        self.socket_dashboard.send(str.encode(string, 'utf-8'))
-        self.WaitReply()
+        self.send_data(string)
+        return self.wait_reply()
 
     def SetArmOrientation(self, r, d, n, cfg):
         """
@@ -328,9 +318,8 @@ class dobot_api_dashboard:
             1, 2... : axis 6 Angle is [0,90] is 1; [90180] 2; And so on)
         """
         string = "SetArmOrientation({:d},{:d},{:d},{:d})".format(r, d, n, cfg)
-        print(string)
-        self.socket_dashboard.send(str.encode(string, 'utf-8'))
-        self.WaitReply()
+        self.send_data(string)
+        return self.wait_reply()
 
     def PowerOn(self):
         """
@@ -338,9 +327,8 @@ class dobot_api_dashboard:
         Note: It takes about 10 seconds for the robot to be enabled after it is powered on.
         """
         string = "PowerOn()"
-        print(string)
-        self.socket_dashboard.send(str.encode(string, 'utf-8'))
-        self.WaitReply()
+        self.send_data(string)
+        return self.wait_reply()
 
     def RunScript(self, project_name):
         """
@@ -348,36 +336,32 @@ class dobot_api_dashboard:
         project_name ：Script file name
         """
         string = "RunScript({:s})".format(project_name)
-        print(string)
-        self.socket_dashboard.send(str.encode(string, 'utf-8'))
-        self.WaitReply()
+        self.send_data(string)
+        return self.wait_reply()
 
     def StopScript(self):
         """
         Stop scripts
         """
         string = "StopScript()"
-        print(string)
-        self.socket_dashboard.send(str.encode(string, 'utf-8'))
-        self.WaitReply()
+        self.send_data(string)
+        return self.wait_reply()
 
     def PauseScript(self):
         """
         Pause the script
         """
         string = "PauseScript()"
-        print(string)
-        self.socket_dashboard.send(str.encode(string, 'utf-8'))
-        self.WaitReply()
+        self.send_data(string)
+        return self.wait_reply()
 
     def ContinueScript(self):
         """
         Continue running the script
         """
         string = "ContinueScript()"
-        print(string)
-        self.socket_dashboard.send(str.encode(string, 'utf-8'))
-        self.WaitReply()
+        self.send_data(string)
+        return self.wait_reply()
 
     def GetHoldRegs(self, id, addr, count, type):
         """
@@ -395,9 +379,8 @@ class dobot_api_dashboard:
         """
         string = "GetHoldRegs({:d},{:d},{:d},{:s})".format(
             id, addr, count, type)
-        print(string)
-        self.socket_dashboard.send(str.encode(string, 'utf-8'))
-        self.WaitReply()
+        self.send_data(string)
+        return self.wait_reply()
 
     def SetHoldRegs(self, id, addr, count, table, type):
         """
@@ -415,25 +398,29 @@ class dobot_api_dashboard:
         """
         string = "SetHoldRegs({:d},{:d},{:d},{:d},{:s})".format(
             id, addr, count, table, type)
-        print(string)
-        self.socket_dashboard.send(str.encode(string, 'utf-8'))
-        self.WaitReply()
+        self.send_data(string)
+        return self.wait_reply()
 
-    def Sync(self):
+    def GetErrorID(self):
         """
-        Synchronization instructions
+        Get robot error code
         """
-        string = "Sync()"
-        print(string)
-        self.socket_dashboard.send(str.encode(string, 'utf-8'))
-        self.WaitReply()
+        string = "GetErrorID()"
+        self.send_data(string)
+        return self.wait_reply()
 
-    def WaitReply(self):
+    def send_data(self, string):
+        self.log("Send to 192.168.5.1:29999:" + string)
+        self.socket_dashboard.send(str.encode(string, 'utf-8'))
+
+    def wait_reply(self):
         """
         Read the return value
         """
         data = self.socket_dashboard.recv(1024)
-        print('receive:', bytes.decode(data, 'utf-8'))
+        self.log('Receive from 192.168.5.1:29999:',
+                 bytes.decode(data, 'utf-8'))
+        return data
 
     def close(self):
         """
@@ -443,25 +430,35 @@ class dobot_api_dashboard:
             self.socket_dashboard.close()
 
 
-class dobot_api_move:
+class DobotApiMove:
     """
     Define class dobot_api_move to establish a connection to Dobot
     """
 
-    def __init__(self, ip, port):
+    def __init__(self, ip, port, *args):
         self.ip = ip
         self.port = port
-        self.socket_feedback = 0
+        self.socket_move = 0
+        self.text_log: Text = None
+        if args:
+            self.text_log = args[0]
 
-        if self.port == 30003:
-            try:
-                self.socket_feedback = socket.socket()
-                self.socket_feedback.connect((self.ip, self.port))
-            except socket.error:
-                raise Exception(
-                    "Unable to set socket connection use port 30003 !", socket.error)
+        # if self.port == 30003:
+        #     try:
+        #         self.socket_move = socket.socket()
+        #         self.socket_move.connect((self.ip, self.port))
+        #     except socket.error:
+        #         raise Exception(
+        #             "Unable to set socket connection use port 30003 !", socket.error)
+        # else:
+        #     raise Exception("Connect to feedback server need use port 30003 !")
+
+    def log(self, text):
+        if self.text_log:
+            date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S ")
+            self.text_log.insert(END, date+text+"\n")
         else:
-            raise Exception("Connect to feedback server need use port 30003 !")
+            print(text)
 
     def __del__(self):
         self.close()
@@ -478,8 +475,8 @@ class dobot_api_move:
         """
         string = "MovJ({:f},{:f},{:f},{:f},{:f},{:f})".format(
             x, y, z, rx, ry, rz)
-        print(string)
-        self.socket_feedback.send(str.encode(string, 'utf-8'))
+        self.send_data(string)
+        return self.wait_reply()
 
     def MovL(self, x, y, z, rx, ry, rz):
         """
@@ -493,8 +490,8 @@ class dobot_api_move:
         """
         string = "MovL({:f},{:f},{:f},{:f},{:f},{:f})".format(
             x, y, z, rx, ry, rz)
-        print(string)
-        self.socket_feedback.send(str.encode(string, 'utf-8'))
+        self.send_data(string)
+        return self.wait_reply()
 
     def JointMovJ(self, j1, j2, j3, j4, j5, j6):
         """
@@ -503,8 +500,8 @@ class dobot_api_move:
         """
         string = "JointMovJ({:f},{:f},{:f},{:f},{:f},{:f})".format(
             j1, j2, j3, j4, j5, j6)
-        print(string)
-        self.socket_feedback.send(str.encode(string, 'utf-8'))
+        self.send_data(string)
+        return self.wait_reply()
 
     def Jump(self):
         print("待定")
@@ -516,8 +513,8 @@ class dobot_api_move:
         """
         string = "RelMovJ({:f},{:f},{:f},{:f},{:f},{:f})".format(
             offset1, offset2, offset3, offset4, offset5, offset6)
-        print(string)
-        self.socket_feedback.send(str.encode(string, 'utf-8'))
+        self.send_data(string)
+        return self.wait_reply()
 
     def RelMovL(self, offsetX, offsetY, offsetZ):
         """
@@ -527,8 +524,8 @@ class dobot_api_move:
         z: Offset in the Cartesian coordinate system Z
         """
         string = "RelMovL({:f},{:f},{:f})".format(offsetX, offsetY, offsetZ)
-        print(string)
-        self.socket_feedback.send(str.encode(string, 'utf-8'))
+        self.send_data(string)
+        return self.wait_reply()
 
     def MovLIO(self, x, y, z, a, b, c, *dynParams):
         """
@@ -555,8 +552,8 @@ class dobot_api_move:
             string = string + ",{{{:d},{:d},{:d},{:d}}}".format(
                 params[0], params[1], params[2], params[3])
         string = string + ")"
-        print(string)
-        self.socket_feedback.send(str.encode(string, 'utf-8'))
+        self.send_data(string)
+        return self.wait_reply()
 
     def MovJIO(self, x, y, z, a, b, c, *dynParams):
         """
@@ -577,15 +574,15 @@ class dobot_api_move:
         # example： MovJIO(0,50,0,0,0,0,(0,50,1,0),(1,1,2,1))
         string = "MovJIO({:f},{:f},{:f},{:f},{:f},{:f}".format(
             x, y, z, a, b, c)
-        print(string)
+        self.log("Send to 192.168.5.1:29999:" + string)
         print(type(dynParams), dynParams)
         for params in dynParams:
             print(type(params), params)
             string = string + ",{{{:d},{:d},{:d},{:d}}}".format(
                 params[0], params[1], params[2], params[3])
         string = string + ")"
-        print(string)
-        self.socket_feedback.send(str.encode(string, 'utf-8'))
+        self.send_data(string)
+        return self.wait_reply()
 
     def Arc(self, x1, y1, z1, a1, b1, c1, x2, y2, z2, a2, b2, c2):
         """
@@ -596,8 +593,8 @@ class dobot_api_move:
         """
         string = "Arc({:f},{:f},{:f},{:f},{:f},{:f},{:f},{:f},{:f},{:f},{:f},{:f})".format(
             x1, y1, z1, a1, b1, c1, x2, y2, z2, a2, b2, c2)
-        print(string)
-        self.socket_feedback.send(str.encode(string, 'utf-8'))
+        self.send_data(string)
+        return self.wait_reply()
 
     def Circle(self, count, x1, y1, z1, a1, b1, c1, x2, y2, z2, a2, b2, c2):
         """
@@ -609,8 +606,8 @@ class dobot_api_move:
         """
         string = "Circle({:d},{:f},{:f},{:f},{:f},{:f},{:f},{:f},{:f},{:f},{:f},{:f},{:f})".format(
             count, x1, y1, z1, a1, b1, c1, x2, y2, z2, a2, b2, c2)
-        print(string)
-        self.socket_feedback.send(str.encode(string, 'utf-8'))
+        self.send_data(string)
+        return self.wait_reply()
 
     def ServoJ(self, j1, j2, j3, j4, j5, j6):
         """
@@ -619,8 +616,8 @@ class dobot_api_move:
         """
         string = "ServoJ({:f},{:f},{:f},{:f},{:f},{:f})".format(
             j1, j2, j3, j4, j5, j6)
-        print(string)
-        self.socket_feedback.send(str.encode(string, 'utf-8'))
+        self.send_data(string)
+        return self.wait_reply()
 
     def ServoP(self, x, y, z, a, b, c):
         """
@@ -629,8 +626,8 @@ class dobot_api_move:
         """
         string = "ServoP({:f},{:f},{:f},{:f},{:f},{:f})".format(
             x, y, z, a, b, c)
-        print(string)
-        self.socket_feedback.send(str.encode(string, 'utf-8'))
+        self.send_data(string)
+        return self.wait_reply()
 
     def MoveJog(self, axis_id, *dynParams):
         """
@@ -646,13 +643,13 @@ class dobot_api_move:
                     tool_index: tool index is 0 ~ 9 (default value is 0)
         """
         string = f"MoveJog({axis_id})"
-        print(string)
         for params in dynParams:
             print(type(params), params)
             string = string + ", CoordType={:d}, User={:d}, Tool={:d}".format(
                 params[0], params[1], params[2])
         string = string + ")"
-        self.socket_feedback.send(str.encode(string, 'utf-8'))
+        self.send_data(string)
+        return self.wait_reply()
 
     def StartTrace(self, trace_name):
         """
@@ -663,8 +660,8 @@ class dobot_api_move:
         It needs to be used together with `GetTraceStartPose(recv_string.json)` interface
         """
         string = f"StartTrace({trace_name})"
-        print(string)
-        self.socket_feedback.send(str.encode(string, 'utf-8'))
+        self.send_data(string)
+        return self.wait_reply()
 
     def StartPath(self, trace_name, const, cart):
         """
@@ -679,8 +676,8 @@ class dobot_api_move:
         It needs to be used together with `GetTraceStartPose(recv_string.json)` interface
         """
         string = f"StartPath({trace_name}, {const}, {cart})"
-        print(string)
-        self.socket_feedback.send(str.encode(string, 'utf-8'))
+        self.send_data(string)
+        return self.wait_reply()
 
     def StartFCTrace(self, trace_name):
         """
@@ -691,16 +688,16 @@ class dobot_api_move:
         It needs to be used together with `GetTraceStartPose(recv_string.json)` interface
         """
         string = f"StartFCTrace({trace_name})"
-        print(string)
-        self.socket_feedback.send(str.encode(string, 'utf-8'))
+        self.send_data(string)
+        return self.wait_reply()
 
     def Sync(self):
         """
         The blocking program executes the queue instruction and returns after all the queue instructions are executed
         """
         string = "Sync()"
-        print(string)
-        self.socket_feedback.send(str.encode(string, 'utf-8'))
+        self.send_data(string)
+        return self.wait_reply()
 
     def RelMovJTool(self, offset_x, offset_y, offset_z, offset_rx, offset_ry, offset_rz, tool, *dynParams):
         """
@@ -719,13 +716,13 @@ class dobot_api_move:
         """
         string = "RelMovJTool({:f},{:f},{:f},{:f},{:f},{:f}, {:d})".format(
             offset_x, offset_y, offset_z, offset_rx, offset_ry, offset_rz, tool)
-        print(string)
         for params in dynParams:
             print(type(params), params)
             string = string + ", SpeedJ={:d}, AccJ={:d}, User={:d}".format(
                 params[0], params[1], params[2])
         string = string + ")"
-        self.socket_feedback.send(str.encode(string, 'utf-8'))
+        self.send_data(string)
+        return self.wait_reply()
 
     def RelMovLTool(self, offset_x, offset_y, offset_z, offset_rx, offset_ry, offset_rz, tool, *dynParams):
         """
@@ -744,13 +741,13 @@ class dobot_api_move:
         """
         string = "RelMovLTool({:f},{:f},{:f},{:f},{:f},{:f}, {:d})".format(
             offset_x, offset_y, offset_z, offset_rx, offset_ry, offset_rz, tool)
-        print(string)
         for params in dynParams:
             print(type(params), params)
             string = string + ", SpeedJ={:d}, AccJ={:d}, User={:d}".format(
                 params[0], params[1], params[2])
         string = string + ")"
-        self.socket_feedback.send(str.encode(string, 'utf-8'))
+        self.send_data(string)
+        return self.wait_reply()
 
     def RelMovJUser(self, offset_x, offset_y, offset_z, offset_rx, offset_ry, offset_rz, user, *dynParams):
         """
@@ -769,13 +766,13 @@ class dobot_api_move:
         """
         string = "RelMovJUser({:f},{:f},{:f},{:f},{:f},{:f}, {:d})".format(
             offset_x, offset_y, offset_z, offset_rx, offset_ry, offset_rz, user)
-        print(string)
         for params in dynParams:
             print(type(params), params)
             string = string + ", SpeedJ={:d}, AccJ={:d}, Tool={:d}".format(
                 params[0], params[1], params[2])
         string = string + ")"
-        self.socket_feedback.send(str.encode(string, 'utf-8'))
+        self.send_data(string)
+        return self.wait_reply()
 
     def RelMovLUser(self, offset_x, offset_y, offset_z, offset_rx, offset_ry, offset_rz, user, *dynParams):
         """
@@ -794,13 +791,13 @@ class dobot_api_move:
         """
         string = "RelMovLUser({:f},{:f},{:f},{:f},{:f},{:f}, {:d})".format(
             offset_x, offset_y, offset_z, offset_rx, offset_ry, offset_rz, user)
-        print(string)
         for params in dynParams:
             print(type(params), params)
             string = string + ", SpeedJ={:d}, AccJ={:d}, Tool={:d}".format(
                 params[0], params[1], params[2])
         string = string + ")"
-        self.socket_feedback.send(str.encode(string, 'utf-8'))
+        self.send_data(string)
+        return self.wait_reply()
 
     def RelJointMovJ(self, offset1, offset2, offset3, offset4, offset5, offset6, *dynParams):
         """
@@ -813,47 +810,67 @@ class dobot_api_move:
         """
         string = "RelJointMovJ({:f},{:f},{:f},{:f},{:f},{:f})".format(
             offset1, offset2, offset3, offset4, offset5, offset6)
-        print(string)
         for params in dynParams:
             print(type(params), params)
             string = string + ", SpeedJ={:d}, AccJ={:d}".format(
                 params[0], params[1])
         string = string + ")"
-        self.socket_feedback.send(str.encode(string, 'utf-8'))
+        self.send_data(string)
+        return self.wait_reply()
 
     def close(self):
         """
         Close port
         """
-        if (self.socket_feedback != 0):
-            self.socket_feedback.close()
+        if (self.socket_move != 0):
+            self.socket_move.close()
+
+    def send_data(self, string):
+        self.log("Send to 192.168.5.1:30003:" + string)
+        self.socket_move.send(str.encode(string, 'utf-8'))
+
+    def wait_reply(self):
+        """
+        Read the return value
+        """
+        data = self.socket_move.recv(1024)
+        self.log('Receive from 192.168.5.1:30003:',
+                 bytes.decode(data, 'utf-8'))
 
 
-class dobot_api_feedback:
+class DobotApiFeedback:
     """
     Define class dobot_api_feedback to establish a connection to Dobot
     """
 
-    def __init__(self, ip, port):
+    def __init__(self, ip, port, *args):
         self.ip = ip
         self.port = port
         self.socket_feedback = 0
+        self.text_log: Text = None
+        if args:
+            self.text_log = args[0]
 
-        if self.port == 30004:
-            try:
-                self.socket_feedback = socket.socket()
-                self.socket_feedback.connect((self.ip, self.port))
-            except socket.error:
-                raise Exception(
-                    "Unable to set socket connection use port 30004 !", socket.error)
+        # if self.port == 30004:
+        #     try:
+        #         self.socket_feedback = socket.socket()
+        #         self.socket_feedback.connect((self.ip, self.port))
+        #     except socket.error:
+        #         raise Exception(
+        #             "Unable to set socket connection use port 30004 !", socket.error)
+        # else:
+        #     raise Exception("Connect to feedback server need use port 30004 !")
+    def log(self, text):
+        if self.text_log:
+            date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S ")
+            self.text_log.insert(END, date+text+"\n")
         else:
-            raise Exception("Connect to feedback server need use port 30004 !")
+            print(text)
 
     def __del__(self):
         self.close()
 
-
-    def WaitReply(self):
+    def wait_reply(self):
         """
         30004 Port return value
         """
