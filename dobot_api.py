@@ -71,71 +71,68 @@ MyType = np.dtype([(
     ('joint_modes', np.float64, (6, )),
     ('v_actual', np.float64, (6, )),
     ('dummy', np.float64, (9, 6))])
-    # ('hand_type', np.char, (4, )),
-    # ('user', np.char,),
-    # ('tool', np.char,),
-    # ('run_queued_cmd', np.char,),
-    # ('pause_cmd_flag', np.char,),
-    # ('velocity_ratio', np.char,),
-    # ('acceleration_ratio', np.char,),
-    # ('jerk_ratio', np.char,),
-    # ('xyz_velocity_ratio', np.char,),
-    # ('r_velocity_ratio', np.char,),
-    # ('xyz_acceleration_ratio', np.char,),
-    # ('r_acceleration_ratio', np.char,),
-    # ('xyz_jerk_ratio', np.char,),
-    # ('r_jerk_ratio', np.char,),
-    # ('brake_status', np.char,),
-    # ('enable_status', np.char,),
-    # ('drag_status', np.char,),
-    # ('running_status', np.char,),
-    # ('error_status', np.char,),
-    # ('jog_status', np.char,),
-    # ('robot_type', np.char,),
-    # ('drag_button_signal', np.char,),
-    # ('enable_button_signal', np.char,),
-    # ('record_button_signal', np.char,),
-    # ('reappear_button_signal', np.char,),
-    # ('jaw_button_signal', np.char,),
-    # ('six_force_online', np.char,),
-    # ('reserve2', np.char, (82, )),
-    # ('m_actual', np.float64, (6, )),
-    # ('load', np.float64,),
-    # ('center_x', np.float64,),
-    # ('center_y', np.float64,),
-    # ('center_z', np.float64,),
-    # ('user[6]', np.float64, (6, )),
-    # ('tool[6]', np.float64, (6, )),
-    # ('trace_index', np.float64,),
-    # ('six_force_value', np.float64, (6, )),
-    # ('target_quaternion', np.float64, (4, )),
-    # ('actual_quaternion', np.float64, (4, )),
-    # ('reserve3', np.char, (24, ))])
+# ('hand_type', np.char, (4, )),
+# ('user', np.char,),
+# ('tool', np.char,),
+# ('run_queued_cmd', np.char,),
+# ('pause_cmd_flag', np.char,),
+# ('velocity_ratio', np.char,),
+# ('acceleration_ratio', np.char,),
+# ('jerk_ratio', np.char,),
+# ('xyz_velocity_ratio', np.char,),
+# ('r_velocity_ratio', np.char,),
+# ('xyz_acceleration_ratio', np.char,),
+# ('r_acceleration_ratio', np.char,),
+# ('xyz_jerk_ratio', np.char,),
+# ('r_jerk_ratio', np.char,),
+# ('brake_status', np.char,),
+# ('enable_status', np.char,),
+# ('drag_status', np.char,),
+# ('running_status', np.char,),
+# ('error_status', np.char,),
+# ('jog_status', np.char,),
+# ('robot_type', np.char,),
+# ('drag_button_signal', np.char,),
+# ('enable_button_signal', np.char,),
+# ('record_button_signal', np.char,),
+# ('reappear_button_signal', np.char,),
+# ('jaw_button_signal', np.char,),
+# ('six_force_online', np.char,),
+# ('reserve2', np.char, (82, )),
+# ('m_actual', np.float64, (6, )),
+# ('load', np.float64,),
+# ('center_x', np.float64,),
+# ('center_y', np.float64,),
+# ('center_z', np.float64,),
+# ('user[6]', np.float64, (6, )),
+# ('tool[6]', np.float64, (6, )),
+# ('trace_index', np.float64,),
+# ('six_force_value', np.float64, (6, )),
+# ('target_quaternion', np.float64, (4, )),
+# ('actual_quaternion', np.float64, (4, )),
+# ('reserve3', np.char, (24, ))])
 
 
-class DobotApiDashboard:
-    """
-    Define class dobot_api_dashboard to establish a connection to Dobot
-    """
-
+class DobotApi:
     def __init__(self, ip, port, *args):
         self.ip = ip
         self.port = port
-        self.socket_dashboard = 0
+        self.socket_dobot = 0
         self.text_log: Text = None
         if args:
             self.text_log = args[0]
 
-        if self.port == 29999:
+        if self.port == 29999 or self.port == 30003 or self.port == 30004:
             try:
-                self.socket_dashboard = socket.socket()
-                self.socket_dashboard.connect((self.ip, self.port))
+                self.socket_dobot = socket.socket()
+                self.socket_dobot.connect((self.ip, self.port))
             except socket.error:
+                print(socket.error)
                 raise Exception(
-                    "Unable to set socket connection use port 29999 !", socket.error)
+                    f"Unable to set socket connection use port {self.port} !", socket.error)
         else:
             raise Exception(
-                "Connect to dashboard server need use port 29999 !")
+                f"Connect to dashboard server need use port {self.port} !")
 
     def log(self, text):
         if self.text_log:
@@ -144,8 +141,34 @@ class DobotApiDashboard:
         else:
             print(text)
 
-    def __delete__(self):
+    def send_data(self, string):
+        self.log(f"Send to 192.168.5.1:{self.port}: {string}")
+        self.socket_dobot.send(str.encode(string, 'utf-8'))
+
+    def wait_reply(self):
+        """
+        Read the return value
+        """
+        data = self.socket_dobot.recv(1024)
+        data_str = str(data, encoding="utf-8")
+        self.log(f'Receive from 192.168.5.1:{self.port}: {data_str}')
+        return data_str
+
+    def close(self):
+        """
+        Close the port
+        """
+        if (self.socket_dobot != 0):
+            self.socket_dobot.close()
+
+    def __del__(self):
         self.close()
+
+
+class DobotApiDashboard(DobotApi):
+    """
+    Define class dobot_api_dashboard to establish a connection to Dobot
+    """
 
     def EnableRobot(self):
         """
@@ -449,59 +472,11 @@ class DobotApiDashboard:
         self.send_data(string)
         return self.wait_reply()
 
-    def send_data(self, string):
-        self.log("Send to 192.168.5.1:29999:" + string)
-        self.socket_dashboard.send(str.encode(string, 'utf-8'))
 
-    def wait_reply(self):
-        """
-        Read the return value
-        """
-        data = self.socket_dashboard.recv(1024)
-        data_str = str(data, encoding = "utf-8")
-        self.log('Receive from 192.168.5.1:29999:' + data_str)
-        return data_str
-
-    def close(self):
-        """
-        Close the port
-        """
-        if (self.socket_dashboard != 0):
-            self.socket_dashboard.close()
-
-
-class DobotApiMove:
+class DobotApiMove(DobotApi):
     """
     Define class dobot_api_move to establish a connection to Dobot
     """
-
-    def __init__(self, ip, port, *args):
-        self.ip = ip
-        self.port = port
-        self.socket_move = 0
-        self.text_log: Text = None
-        if args:
-            self.text_log = args[0]
-
-        if self.port == 30003:
-            try:
-                self.socket_move = socket.socket()
-                self.socket_move.connect((self.ip, self.port))
-            except socket.error:
-                raise Exception(
-                    "Unable to set socket connection use port 30003 !", socket.error)
-        else:
-            raise Exception("Connect to feedback server need use port 30003 !")
-
-    def log(self, text):
-        if self.text_log:
-            date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S ")
-            self.text_log.insert(END, date+text+"\n")
-        else:
-            print(text)
-
-    def __del__(self):
-        self.close()
 
     def MovJ(self, x, y, z, rx, ry, rz):
         """
@@ -857,76 +832,3 @@ class DobotApiMove:
         string = string + ")"
         self.send_data(string)
         return self.wait_reply()
-
-    def close(self):
-        """
-        Close port
-        """
-        if (self.socket_move != 0):
-            self.socket_move.close()
-
-    def send_data(self, string):
-        self.log("Send to 192.168.5.1:30003:" + string)
-        self.socket_move.send(str.encode(string, 'utf-8'))
-
-    def wait_reply(self):
-        """
-        Read the return value
-        """
-        data = str(self.socket_move.recv(1024), encoding="utf-8")
-        self.log('Receive from 192.168.5.1:30003:' + data)
-
-
-class DobotApiFeedback:
-    """
-    Define class dobot_api_feedback to establish a connection to Dobot
-    """
-
-    def __init__(self, ip, port, *args):
-        self.ip = ip
-        self.port = port
-        self.socket_feedback = 0
-        self.text_log: Text = None
-        if args:
-            self.text_log = args[0]
-
-        if self.port == 30004:
-            try:
-                self.socket_feedback = socket.socket()
-                self.socket_feedback.connect((self.ip, self.port))
-            except socket.error:
-                raise Exception(
-                    "Unable to set socket connection use port 30004 !", socket.error)
-        else:
-            raise Exception("Connect to feedback server need use port 30004 !")
-
-    def log(self, text):
-        if self.text_log:
-            date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S ")
-            self.text_log.insert(END, date+text+"\n")
-        else:
-            print(text)
-
-    def __del__(self):
-        self.close()
-
-    def wait_reply(self):
-        """
-        30004 Port return value
-        """
-        all = self.socket_feedback.recv(10240)
-        data = all[0:1440]
-        a = np.frombuffer(data, dtype=MyType)
-        if hex((a['test_value'][0])) == '0x123456789abcdef':
-            print('robot_mode', a['robot_mode'])
-            print('tool_vector_actual',
-                  np.around(a['tool_vector_actual'], decimals=4))
-            print('q_actual', np.around(a['q_actual'], decimals=4))
-            print('test_value', a['test_value'])
-
-    def close(self):
-        """
-        Close port
-        """
-        if (self.socket_feedback != 0):
-            self.socket_feedback.close()

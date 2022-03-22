@@ -325,7 +325,7 @@ class RobotUI(object):
                     self.entry_ip.get(), int(self.entry_dash.get()), self.text_log)
                 self.client_move = DobotApiMove(
                     self.entry_ip.get(), int(self.entry_move.get()), self.text_log)
-                self.client_feed = DobotApiFeedback(
+                self.client_feed = DobotApi(
                     self.entry_ip.get(), int(self.entry_feed.get()), self.text_log)
             except Exception as e:
                 messagebox.showerror("Attention!", f"Connection Error:{e}")
@@ -439,7 +439,7 @@ class RobotUI(object):
                 break
             data = bytes()
             while hasRead < 1440:
-                temp = self.client_feed.socket_feedback.recv(1440 - hasRead)
+                temp = self.client_feed.socket_dobot.recv(1440 - hasRead)
                 if len(temp) > 0:
                     hasRead += len(temp)
                     data += temp

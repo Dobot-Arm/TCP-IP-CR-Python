@@ -9,6 +9,11 @@
 2. Try to ping the controller IP to make sure it is in the same network segment.
 
 3. Numpy is required for the Python environment: `pip install numpy -i http://pypi.douban.com/simple/ --trusted-host pypi.douban.com`
+
+4. files: Stores alarm ID related information
+
+5. images：Store the image resources needed by the UI interface
+
 ## 2. File description
 1. main.py: The entry point of the program.
    

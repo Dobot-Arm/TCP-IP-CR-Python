@@ -17,6 +17,10 @@ English version of the README -> please [click here](./README-EN.md)
 2. dobot_api.py：封装机器人接口，根据机器人TCP/IP远程控制方案（https://github.com/Dobot-Arm/TCP-IP-Protocol）自行修改。
 
 3. ui.py：程序运行UI界面
+
+4. files：存放报警ID相关信息
+
+5. images：存放UI界面需要的图片资源
 ## 3. 运行Demo
 方法一: 需要检测搜索到动态库，需在**VsCode**中打开整个目录，再直接运行 main.py。  
 
