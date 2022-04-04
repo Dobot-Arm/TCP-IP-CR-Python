@@ -1,6 +1,7 @@
 import socket
 from threading import Timer
 import numpy as np
+import ast
 
 # Port Feedback
 MyType=np.dtype([('len', np.int64, ), ('digital_input_bits', np.int64, ), 
@@ -365,6 +366,12 @@ class dobot_api_dashboard:
         print(string)
         self.socket_dashboard.send(str.encode(string,'utf-8'))
         self.WaitReply()
+
+    def GetPose(self):
+        string = "GetPose()"
+        self.socket_dashboard.send(str.encode(string,'utf-8'))
+        data = self.WaitReply()
+        return ast.literal_eval(data.replace("{","[").replace("}","]"))
     
     def Sync(self):
         """
@@ -380,7 +387,11 @@ class dobot_api_dashboard:
         Read the return value
         """
         data = self.socket_dashboard.recv(1024)
-        print('receive:', bytes.decode(data,'utf-8'))
+        data = bytes.decode(data,'utf-8')
+        print('receive:', data)
+        if data:
+            return data
+        return False
 
     def close(self):
         """
@@ -578,6 +589,8 @@ class dobot_api_feedback:
             print('tool_vector_actual', np.around(a['tool_vector_actual'], decimals=4))
             print('q_actual', np.around(a['q_actual'], decimals=4))
             print('test_value', a['test_value'])
+            return True
+        return False
        
     def close(self):
         """
