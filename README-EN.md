@@ -1,3 +1,5 @@
+Chinese version of the README -> please [click here](./README.md)
+
 # Readme
 
 ## 1. The following steps are required to run Demo
