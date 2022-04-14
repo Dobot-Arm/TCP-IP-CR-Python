@@ -1,3 +1,5 @@
+Chinese version of the README -> please [click here](./README.md)
+
 # Readme
 
 ## 1. The following steps are required to run Demo
@@ -8,19 +10,25 @@
 
 2. Try to ping the controller IP to make sure it is in the same network segment.
 
+3. Numpy is required for the Python environment: `pip install numpy -i http://pypi.douban.com/simple/ --trusted-host pypi.douban.com`
+
+4. files: Stores alarm ID related information
+
+5. images：Store the image resources needed by the UI interface
 
 ## 2. File description
-1. demo.py: The entry point of the program.  
+1. main.py: The entry point of the program.
    
-2. dobot_api.py: According to the robot TCP/IP remote control scheme (https://github.com/Dobot-Arm/TCP-IP-Protocol), modify it by yourself.
+2. dobot_api.py: It mainly encapsulates the robot interface, according to the robot TCP/IP remote control scheme (https://github.com/Dobot-Arm/TCP-IP-Protocol), modify it by yourself.
 
+3. ui.py: The program runs the UI interface.
 ## 3. Run Demo
-Method 1: If you need to detect and search the dynamic library, you need to open the entire directory in **VsCode**, and then run demo.py directly.  
+Method 1: If you need to detect and search the dynamic library, you need to open the entire directory in **VsCode**, and then run main.py directly.  
 
-Method 2: To detect and search the dynamic library, you need to open the entire directory in **PyCharm**, and then run demo.py directly.
+Method 2: To detect and search the dynamic library, you need to open the entire directory in **PyCharm**, and then run main.py directly.
 
 ## 4. Test environment
-- language: Python 3.7 64-bit
+- language: Python 3.8 64-bit
 - os: Windows 10 64-bit
 
 ## 5. Controller version
